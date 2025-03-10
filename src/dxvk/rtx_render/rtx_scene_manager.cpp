@@ -1062,14 +1062,19 @@ namespace dxvk {
         const auto& legacyMaterialData = renderMaterialData.getLegacyMaterialData();
 
         anisotropy = LegacyMaterialDefaults::anisotropy();
-        emissiveIntensity = LegacyMaterialDefaults::emissiveIntensity();
         albedoOpacityConstant = Vector4(LegacyMaterialDefaults::albedoConstant(), LegacyMaterialDefaults::opacityConstant());
         roughnessConstant = LegacyMaterialDefaults::roughnessConstant();
         metallicConstant = LegacyMaterialDefaults::metallicConstant();
-
-        // Override these for legacy materials
         emissiveColorConstant = LegacyMaterialDefaults::emissiveColorConstant();
+        emissiveIntensity = LegacyMaterialDefaults::emissiveIntensity();
+        thinFilmEnable = LegacyMaterialDefaults::enableThinFilm();
         enableEmissive = LegacyMaterialDefaults::enableEmissive();
+
+        if (legacyMaterialData.emissiveColorConstantFromD3D >= 0.0f) {
+          emissiveIntensity = legacyMaterialData.emissiveColorConstantFromD3D;
+          thinFilmEnable = true;
+          enableEmissive = true;
+        }
 
         if (RtxOptions::useWhiteMaterialMode()) {
           albedoOpacityConstant = kWhiteModeAlbedo;
@@ -1095,7 +1100,7 @@ namespace dxvk {
           ignoreAlphaChannel = LegacyMaterialDefaults::ignoreAlphaChannel();
         }
 
-        thinFilmEnable = LegacyMaterialDefaults::enableThinFilm();
+        //thinFilmEnable = LegacyMaterialDefaults::enableThinFilm();
         alphaIsThinFilmThickness = LegacyMaterialDefaults::alphaIsThinFilmThickness();
         thinFilmThicknessConstant = LegacyMaterialDefaults::thinFilmThicknessConstant();
       } else if (renderMaterialDataType == MaterialDataType::Opaque) {
@@ -1128,9 +1133,13 @@ namespace dxvk {
         emissiveIntensity = opaqueMaterialData.getEmissiveIntensity();
         emissiveColorConstant = opaqueMaterialData.getEmissiveColorConstant();
         enableEmissive = opaqueMaterialData.getEnableEmission();
-        anisotropy = opaqueMaterialData.getAnisotropyConstant();
-        
         thinFilmEnable = opaqueMaterialData.getEnableThinFilm();
+
+        if (thinFilmEnable) {
+          enableEmissive = true;
+        }
+
+        anisotropy = opaqueMaterialData.getAnisotropyConstant();
         alphaIsThinFilmThickness = opaqueMaterialData.getAlphaIsThinFilmThickness();
         thinFilmThicknessConstant = opaqueMaterialData.getThinFilmThicknessConstant();
         displaceIn = opaqueMaterialData.getDisplaceIn();
